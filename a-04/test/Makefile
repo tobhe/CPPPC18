@@ -7,7 +7,7 @@ INCLUDES=-I${GTEST_BASE}/include -I../
 OBJS = testsuite.o \
 			 find_mean_rep_test.o \
 	   	     lazy_list_test.o \
-#            histogram_test.o \
+             histogram_test.o \
 #            sparse_array_test.o \
 #			 histogram_test.o \
 
