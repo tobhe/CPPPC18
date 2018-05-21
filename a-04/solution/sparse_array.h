@@ -110,19 +110,19 @@ public:
     return old;
   }
 
-  self_t operator+=(const difference_type offset) {
+  self_t operator+=(const difference_type offset) const {
     return self_t(_arr, _index + offset);
   }
 
-  self_t operator-=(const difference_type offset) {
+  self_t operator-=(const difference_type offset) const {
     return self_t(_arr, _index - offset);
   }
 
-  self_t operator+(const difference_type offset) {
+  self_t operator+(const difference_type offset) const {
     return self_t(_arr, _index + offset);
   }
 
-  self_t operator-(const difference_type offset) {
+  self_t operator-(const difference_type offset) const {
     return self_t(_arr, _index - offset);
   }
 
