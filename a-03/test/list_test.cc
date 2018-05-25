@@ -92,7 +92,6 @@ TEST_F(ListTest, ListConcept) {
   v.pop_front();
   ASSERT_EQ(v.front(), 11);
 
-
   LOG_MESSAGE("ListTest.ListConcept: list__copy");
   auto vcopy = list<int, 0>(v);
 
@@ -108,4 +107,36 @@ TEST_F(ListTest, ListConcept) {
   ASSERT_EQ(1, v.empty());
 }
 
+TEST_F(ListTest, MoveSemantics) {
+
+  list<int, 0> l0{6};
+  l0.push_front(56);
+  l0.push_front(46);
+  l0.push_front(36);
+
+  LOG_MESSAGE("ListTest.ListConcept: Move constructor");
+  list<int, 0> l1{std::move(l0)};
+
+  ASSERT_EQ(36, l1.front());
+  l1.pop_front();
+  ASSERT_EQ(46, l1.front());
+  l1.pop_front();
+  ASSERT_EQ(56, l1.front());
+  l1.pop_front();
+
+  LOG_MESSAGE("ListTest.ListConcept: Move assignment");
+  list<int, 0> l3{6};
+  l1.push_front(56);
+  l1.push_front(46);
+  l1.push_front(36);
+
+  l3 = std::move(l1);
+
+  ASSERT_EQ(36, l3.front());
+  l3.pop_front();
+  ASSERT_EQ(46, l3.front());
+  l3.pop_front();
+  ASSERT_EQ(56, l3.front());
+  l3.pop_front();
+}
 } // namespace cpppc
