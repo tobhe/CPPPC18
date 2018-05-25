@@ -26,13 +26,28 @@ public:
 public:
   // Constructors
   list() = default;
-  list(const self_t &other) = default; // Copy
+
+  list(const self_t &other) {
+    // This is so stupid, but it werks
+    if (other.size() == 0) {
+      return;
+    }
+
+    self_t l1;
+    for (auto i : other) {
+      l1.push_front(i);
+    }
+    for (auto i : l1) {
+      push_front(i);
+    }
+  }
 
   list(const size_type count, const ValueT &value) {
     for (size_type i = 0; i < count; ++i) {
       push_front(value);
     }
   }
+
   template <class InputIt, class value_type = typename std::iterator_traits<
                                InputIt>::value_type>
   list(InputIt first, InputIt last) {
