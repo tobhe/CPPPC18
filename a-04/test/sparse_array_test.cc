@@ -1,26 +1,24 @@
 #include "sparse_array_test.h"
 
-#include <solution/sparse_array.h>
 #include <gtest/gtest.h>
+#include <solution/sparse_array.h>
 
-#include <iostream>
 #include <algorithm>
-#include <iterator>
 #include <array>
+#include <iostream>
+#include <iterator>
 
 // you might want to set this to 1 for debugging
 constexpr int NMULT = 100000;
 
 using namespace cpppc;
 
-
-TEST_F(SparseArrayTest, StandardConcept)
-{
+TEST_F(SparseArrayTest, StandardConcept) {
   constexpr size_t N = 1000 * NMULT;
 
   LOG_MESSAGE("SparseArrayTest.StandardConcept: default ctor");
-  sparse_array<int, N> sa1 { };
-  sparse_array<int, N> sa2 { };
+  sparse_array<int, N> sa1{};
+  sparse_array<int, N> sa2{};
 
   LOG_MESSAGE("SparseArrayTest.StandardConcept: ==");
   ASSERT_EQ(sa1, sa1);
@@ -43,8 +41,7 @@ TEST_F(SparseArrayTest, StandardConcept)
   ASSERT_EQ(sa1, sa3);
 }
 
-TEST_F(SparseArrayTest, RandomAccess)
-{
+TEST_F(SparseArrayTest, RandomAccess) {
   LOG_MESSAGE("SparseArrayTest.RandomAccess");
 
   constexpr int N = 840 * NMULT;
@@ -52,16 +49,15 @@ TEST_F(SparseArrayTest, RandomAccess)
 
   auto it = sa.begin() + 621;
 
-  *it  = 123;
-  ASSERT_EQ(it, std::find(sa.begin(), sa.end(),  123));
+  *it = 123;
+  ASSERT_EQ(it, std::find(sa.begin(), sa.end(), 123));
 
-  it  += 100;
-  *it  = 2340;
+  it += 100;
+  *it = 2340;
   ASSERT_EQ(it, std::find(sa.begin(), sa.end(), 2340));
 }
 
-TEST_F(SparseArrayTest, ArrayInterface)
-{
+TEST_F(SparseArrayTest, ArrayInterface) {
   LOG_MESSAGE("SparseArrayTest.ArrayInterface");
 
   constexpr int N = 540 * NMULT;
@@ -75,7 +71,7 @@ TEST_F(SparseArrayTest, ArrayInterface)
   ASSERT_EQ(sa2.size(), sa2.max_size());
 
   sa1.front() = 111;
-  sa1.back()  = 999;
+  sa1.back() = 999;
 
   ASSERT_EQ(*sa1.begin(), sa1.front());
   ASSERT_EQ(*sa1.begin(), 111);
@@ -95,7 +91,7 @@ TEST_F(SparseArrayTest, ArrayInterface)
   sa2.fill(42);
   ASSERT_NE(sa1, sa2);
   ASSERT_EQ(sa2.begin(), std::find(sa2.begin(), sa2.end(), 42));
-  ASSERT_EQ(sa2[10],  42);
+  ASSERT_EQ(sa2[10], 42);
   ASSERT_EQ(sa2[100], 42);
   ASSERT_EQ(sa2[300], 42);
 
@@ -103,27 +99,57 @@ TEST_F(SparseArrayTest, ArrayInterface)
   ASSERT_EQ(sa1, sa2);
 
   sa2[sa2.size() / 2] = 0;
-  // ASSERT_LT(sa2, sa1);
-  // ASSERT_GT(sa1, sa2);
+  ASSERT_LT(sa2, sa1);
+  ASSERT_GT(sa1, sa2);
 
   int idx;
 
   idx = 2;
-  std::generate_n(sa2.begin() + 220, 16,
-                  [&]() { return idx *= 2; });
+  std::generate_n(sa2.begin() + 220, 16, [&]() { return idx *= 2; });
 
   idx = 2;
-  std::for_each(sa2.begin() + 220,
-                sa2.begin() + 220 + 16,
+  std::for_each(sa2.begin() + 220, sa2.begin() + 220 + 16,
                 [&](int v) { ASSERT_EQ(idx *= 2, v); });
 
   // std::sort(sa2.begin(), sa2.end());
 
-  idx = 2;
-  std::for_each(sa2.begin(),
-                sa2.begin() + 16,
-                [&](int v) { ASSERT_EQ(idx *= 2, v); });
+  // idx = 2;
+  // std::for_each(sa2.begin(), sa2.begin() + 16,
+  //               [&](int v) { ASSERT_EQ(idx *= 2, v); });
 
   LOG_MESSAGE("SparseArrayTest.ArrayInterface: sa2 = { %s }",
               range_to_string(sa2.begin(), sa2.begin() + 16).c_str());
+}
+
+TEST_F(SparseArrayTest, MoveSemantics) {
+
+  constexpr int N = 50 * NMULT;
+  sparse_array<int, N> sa1;
+
+  ASSERT_EQ(false, sa1.empty());
+
+  sa1[7] = 99;
+  sa1[9] = 19;
+
+  LOG_MESSAGE("SparseArrayTest.MoveSemantics: Move constructor");
+  auto sa2 = sparse_array<int, N>(std::move(sa1));
+
+  ASSERT_EQ(0, sa1[7]);
+  ASSERT_EQ(0, sa1[9]);
+  ASSERT_EQ(99, sa2[7]);
+  ASSERT_EQ(19, sa2[9]);
+
+
+  LOG_MESSAGE("SparseArrayTest.MoveSemantics: Move assignment");
+  sparse_array<int, N> sa3;
+
+  // Move assignment
+  sa3 = std::move(sa2);
+
+  // sa1 is empty, the original values are in sa3
+  ASSERT_EQ(0, sa2[7]);
+  ASSERT_EQ(0, sa2[9]);
+  ASSERT_EQ(99, sa3[7]);
+  ASSERT_EQ(19, sa3[9]);
+
 }

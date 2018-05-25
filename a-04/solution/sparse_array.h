@@ -25,7 +25,12 @@ public:
 
   // Element Access
   void operator=(const value_type &rhs) {
-    _arr->_data[_index] = rhs;
+    auto iter = _arr->_data.find(_index);
+    if (iter == _arr->_data.end()) {
+      _arr->_data.insert({_index, rhs});
+      return;
+    }
+    iter->second = rhs;
   }
 
   operator const value_type &() const {
@@ -49,13 +54,13 @@ private:
 template <class SparseArrayT> class sparse_array_iterator {
   using index_t = typename SparseArrayT::index_t;
   using self_t = sparse_array_iterator<SparseArrayT>;
+  using proxy_reference = sparse_array_proxy_ref<SparseArrayT>;
 
 public:
-  using proxy_reference = sparse_array_proxy_ref<SparseArrayT>;
   using iterator_category = std::random_access_iterator_tag;
   using value_type = typename SparseArrayT::value_type;
   using pointer = value_type *;
-  using reference = value_type &;
+  using reference = proxy_reference;
   using const_reference = const value_type &;
   using difference_type = typename SparseArrayT::difference_type;
 
@@ -76,14 +81,20 @@ public:
   bool operator>(const self_t &rhs) const { return _index > rhs._index; }
 
   // Element Access
-  proxy_reference operator*() { return proxy_reference(_arr, _index); }
+  reference operator*() {
+    return proxy_reference(_arr, _index);
+  }
 
-  const value_type &operator*() const {
+  const_reference operator*() const {
     auto iter = _arr->_data.find(index);
     if (iter == _arr->_data.end()) {
       return _arr->def;
     }
     return iter->second;
+  }
+
+  reference operator[](difference_type offset) {
+    return proxy_reference(_arr, offset);
   }
 
   // Arithmetic
@@ -109,12 +120,14 @@ public:
     return old;
   }
 
-  self_t operator+=(const difference_type offset) const {
-    return self_t(_arr, _index + offset);
+  self_t &operator+=(const difference_type offset) {
+    _index += offset;
+    return *this;
   }
 
-  self_t operator-=(const difference_type offset) const {
-    return self_t(_arr, _index - offset);
+  self_t &operator-=(const difference_type offset) {
+    _index -= offset;
+    return *this;
   }
 
   self_t operator+(const difference_type offset) const {
@@ -138,6 +151,8 @@ private:
 
 template <class T, std::size_t N> class sparse_array {
   using self_t = sparse_array<T, N>;
+  using proxy_reference = typename detail::sparse_array_proxy_ref<self_t>;
+  using const_proxy_reference = typename detail::sparse_array_proxy_ref<const self_t>;
 
 public:
   using index_t = int;
@@ -145,21 +160,20 @@ public:
   using iterator = detail::sparse_array_iterator<self_t>;
   using const_iterator = detail::sparse_array_iterator<const self_t>;
   using difference_type = index_t;
-  using reference = value_type &;
-  using proxy_reference = typename detail::sparse_array_proxy_ref<self_t>;
+  using reference = proxy_reference;
   using const_reference = const value_type &;
   using size_type = size_t;
 
   friend iterator;
-  friend detail::sparse_array_proxy_ref<self_t>;
-  friend detail::sparse_array_proxy_ref<const self_t>;
+  friend proxy_reference;
+  friend const_proxy_reference;
 
 public:
   // Constructors
   sparse_array() = default;
 
   // Element access
-  value_type operator[](index_t index) const { return *(begin() + index); }
+  const_reference operator[](index_t index) const { return *(begin() + index); }
 
   proxy_reference operator[](index_t index) {
     return proxy_reference(this, index);
@@ -211,13 +225,15 @@ public:
 
   bool operator!=(const self_t &rhs) const { return !(*this == rhs); }
 
-  // bool operator<(const self_t &rhs) const {
-  //   return std::lexicographical_compare(begin(), end(), rhs.begin(), rhs.end());
-  // }
+  bool operator<(const self_t &rhs) const {
+    return std::lexicographical_compare(begin(), end(), rhs.begin(),
+    rhs.end());
+  }
 
-  // bool operator>(const self_t &rhs) const {
-  //   return std::lexicographical_compare(rhs.begin(), rhs.end(), begin(), end());
-  // }
+  bool operator>(const self_t &rhs) const {
+    return std::lexicographical_compare(rhs.begin(), rhs.end(), begin(),
+    end());
+  }
 
   // Operations
   void fill(const value_type &value) {
@@ -231,23 +247,31 @@ public:
     std::swap(def, rhs.def);
   }
 
+  void sort() {
+    difference_type index = 0;
+    for (auto i: _data) {
+      _data[index] = *i;
+      _data.erase(i);
+    }
+  }
+
 private:
   std::unordered_map<index_t, T> _data{};
   size_type _size = N;
   value_type def{};
 };
 
-  template <class T, std::size_t N>
-  void swap(sparse_array<T, N> a, sparse_array<T, N> b) {
-    a.swap(b);
-  }
 
-  template <class T, std::size_t N>
-  void swap(detail::sparse_array_proxy_ref<sparse_array<T, N>> a,
-            detail::sparse_array_proxy_ref<sparse_array<T, N>> b)
-  {
-    a.swap(b);
-  }
+template <class T, std::size_t N>
+void swap(sparse_array<T, N> a, sparse_array<T, N> b) {
+  a.swap(b);
+}
+
+template <class T, std::size_t N>
+void swap(detail::sparse_array_proxy_ref<sparse_array<T, N>> a,
+          detail::sparse_array_proxy_ref<sparse_array<T, N>> b) {
+  a.swap(b);
+}
 
 } // namespace cpppc
 
