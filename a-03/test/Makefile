@@ -1,5 +1,5 @@
-CC=clang++
-CFLAGS=-Og --std=c++11 -Wall -Wextra -pedantic -g
+CC=g++
+CFLAGS=-Og --std=c++14 -Wall -Wextra -pedantic -g
 LDFLAGS=-lpthread -L${GTEST_BASE}/lib -lgtest
 INCLUDES=-I${GTEST_BASE}/include -I../
 
