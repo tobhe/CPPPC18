@@ -1,12 +1,12 @@
-CC=clang++
-CFLAGS=--std=c++17 -Wall -Wextra -pedantic -g
+CC=g++
+CFLAGS=--std=c++17 -Wall -Wextra -pedantic -g -fconcepts
 LDFLAGS=-lpthread -L${GTEST_BASE}/lib -lgtest
 
 INCLUDES=-I${GTEST_BASE}/include -I../
 
 OBJS = testsuite.o \
 			 find_mean_rep_test.o \
-	   	     lazy_list_test.o \
+	   	 lazy_list_test.o \
 			 histogram_test.o \
 			 sparse_array_test.o \
 

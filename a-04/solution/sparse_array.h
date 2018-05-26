@@ -20,26 +20,20 @@ public:
 public:
   // Constructors
   sparse_array_proxy_ref() = delete;
-  sparse_array_proxy_ref(SparseArrayT *array, index_t index)
+  sparse_array_proxy_ref(SparseArrayT &array, index_t index)
       : _arr(array), _index(index) {}
 
   // Element Access
   void operator=(const value_type &rhs) {
-    auto iter = _arr->_data.find(_index);
-    if (iter == _arr->_data.end()) {
-      _arr->_data.insert({_index, rhs});
+    auto iter = _arr._data.find(_index);
+    if (iter == _arr._data.end()) {
+      _arr._data.insert({_index, rhs});
       return;
     }
     iter->second = rhs;
   }
 
-  operator const value_type &() const {
-    auto iter = _arr->_data.find(_index);
-    if (iter == _arr->_data.end()) {
-      return _arr->def;
-    }
-    return iter->second;
-  }
+  operator value_type () const { return _arr.at(_index); }
 
   void swap(self_t &rhs) {
     std::swap(_arr, rhs._arr);
@@ -47,7 +41,7 @@ public:
   }
 
 private:
-  SparseArrayT *_arr;
+  SparseArrayT &_arr;
   index_t _index;
 };
 
@@ -81,9 +75,7 @@ public:
   bool operator>(const self_t &rhs) const { return _index > rhs._index; }
 
   // Element Access
-  reference operator*() {
-    return proxy_reference(_arr, _index);
-  }
+  reference operator*() { return proxy_reference(*_arr, _index); }
 
   const_reference operator*() const {
     auto iter = _arr->_data.find(index);
@@ -152,7 +144,8 @@ private:
 template <class T, std::size_t N> class sparse_array {
   using self_t = sparse_array<T, N>;
   using proxy_reference = typename detail::sparse_array_proxy_ref<self_t>;
-  using const_proxy_reference = typename detail::sparse_array_proxy_ref<const self_t>;
+  using const_proxy_reference =
+      typename detail::sparse_array_proxy_ref<const self_t>;
 
 public:
   using index_t = int;
@@ -171,17 +164,28 @@ public:
 public:
   // Constructors
   sparse_array() = default;
+  ~sparse_array() = default;
+
+  sparse_array(const self_t &other) = default;
+  sparse_array(self_t &&other) = default;
+
+  self_t &operator=(const self_t &other) = default;
+  self_t &operator=(self_t &&other) = default;
 
   // Element access
-  const_reference operator[](index_t index) const { return *(begin() + index); }
+  reference operator[](index_t index) { return reference(*this, index); }
 
-  proxy_reference operator[](index_t index) {
-    return proxy_reference(this, index);
+  const_reference operator[](index_t index) const {
+    return _value_or_default(index);
   }
 
-  proxy_reference front() { return proxy_reference(this, 0); }
+  const_reference at(index_t index) const {
+    return _value_or_default(index);
+  }
 
-  proxy_reference back() { return proxy_reference(this, size() - 1); }
+  reference front() { return reference(*this, 0); }
+
+  reference back() { return reference(*this, size() - 1); }
 
   const_reference front() const { return *begin(); }
 
@@ -217,6 +221,11 @@ public:
 
   // Comparison
   bool operator==(const self_t &rhs) const {
+    // identity
+    if (this == &rhs) {
+      return true;
+    }
+    // equality
     if (_size != rhs.size() || def != rhs.def) {
       return false;
     }
@@ -226,13 +235,11 @@ public:
   bool operator!=(const self_t &rhs) const { return !(*this == rhs); }
 
   bool operator<(const self_t &rhs) const {
-    return std::lexicographical_compare(begin(), end(), rhs.begin(),
-    rhs.end());
+    return std::lexicographical_compare(begin(), end(), rhs.begin(), rhs.end());
   }
 
   bool operator>(const self_t &rhs) const {
-    return std::lexicographical_compare(rhs.begin(), rhs.end(), begin(),
-    end());
+    return std::lexicographical_compare(rhs.begin(), rhs.end(), begin(), end());
   }
 
   // Operations
@@ -249,10 +256,18 @@ public:
 
   void sort() {
     difference_type index = 0;
-    for (auto i: _data) {
+    for (auto i : _data) {
       _data[index] = *i;
       _data.erase(i);
     }
+  }
+
+private:
+  const_reference _value_or_default(index_t index) const {
+    if (_data.find(index) != _data.end()) {
+      return _data.at(index);
+    }
+    return def;
   }
 
 private:
@@ -260,7 +275,6 @@ private:
   size_type _size = N;
   value_type def{};
 };
-
 
 template <class T, std::size_t N>
 void swap(sparse_array<T, N> a, sparse_array<T, N> b) {
