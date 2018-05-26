@@ -1,4 +1,4 @@
-CC=clang++
+CC=g++
 CFLAGS=--std=c++17 -Wall -Wextra -pedantic -g
 LDFLAGS=-lpthread -L${GTEST_BASE}/lib -lgtest
 

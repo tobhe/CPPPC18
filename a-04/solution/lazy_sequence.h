@@ -80,7 +80,7 @@ namespace detail
       // Comparison
       bool operator==(const self_t &rhs)
       {
-        return (_seq == rhs.seq && _index == rhs._index);
+       return (_seq == rhs._seq && _index == rhs._index);
       }
 
       bool operator!=(const self_t &rhs)
