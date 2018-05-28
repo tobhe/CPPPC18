@@ -78,7 +78,7 @@ public:
   using size_type = size_t;
   using value_type = T;
   using iterator = typename detail::lazy_sequence_iterator<self_t>;
-  using const_iterator = typename detail::lazy_sequence_iterator<self_t>;
+  using const_iterator = typename detail::lazy_sequence_iterator<const self_t>;
   using reverse_iterator = std::reverse_iterator<iterator>;
 
 public:
