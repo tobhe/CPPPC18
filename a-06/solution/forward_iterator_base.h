@@ -39,13 +39,6 @@ public:
     return old;
   }
 
-  // constexpr bool operator==(const derived_t &rhs) const {
-  //   return _pos == rhs._pos;
-  // }
-
-  // constexpr bool operator!=(const derived_t &rhs) const {
-  //   return _pos != rhs._pos;
-  // }
 };
 
 } // namespace cpppc
