@@ -27,6 +27,7 @@ No idea, i guess i'm missing the real answer to the above question
 
 yes, std::transform does. One reason is the overload for two ranges:
 
+```
 vector<int> numbers1 = {1, 5, 42, 7, 8};
 vector<int> numbers2 = {10, 7, 4, 2, 2};
 vector<int> results;
@@ -34,6 +35,7 @@ std::transform(numbers1.begin(), numbers1.end(),
                numbers2.begin(),
                std::back_inserter(results),
                [](int i, int j) {return i+j;});
+```
 
 there is no obvious solution to where the results should be saved -> better make copy
 
