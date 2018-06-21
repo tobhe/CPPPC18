@@ -11,12 +11,11 @@ specify comparison between As and Bs
 - What is the benefit of std::get over pair.first / pair.second
 (use compiler explorer)
 
-Not sure how compiler explorer could help me here: https://godbolt.org/g/gb1tsg gives the same result.
-One advantage for sure is the overload by type.
+None
 
 - Why don’t we just always use std::get?
 
-No idea, i guess i'm missing the real answer to the above question
+Because it just works at compile time
 
 ## 7-3-1 Algorithm Categories
 
