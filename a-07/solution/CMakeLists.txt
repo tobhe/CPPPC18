@@ -20,3 +20,18 @@ target_include_directories( has_sum
   PRIVATE
   ${CMAKE_SOURCE_DIR}
   )
+
+add_executable( benchmark
+  ${CMAKE_SOURCE_DIR}/benchmark.cc
+)
+
+target_include_directories( benchmark
+  PRIVATE
+  ${CMAKE_SOURCE_DIR}
+)
+
+target_link_libraries( benchmark
+  PRIVATE celero
+)
+
+add_subdirectory( Celero )
