@@ -8,8 +8,8 @@ set (CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options (-Wall -Wextra -Wpedantic -fPIC -Wfatal-errors)
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_executable( has_sum
-  ${CMAKE_SOURCE_DIR}/has_sum.cc
+add_executable( find_summands
+  ${CMAKE_SOURCE_DIR}/find_summands.cc
   )
 
 add_executable(grow_a_pair
