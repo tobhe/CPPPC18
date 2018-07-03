@@ -11,3 +11,13 @@ set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable( log
   ${CMAKE_SOURCE_DIR}/log.cc
 )
+
+find_package( Threads )
+
+add_executable(threads
+  ${CMAKE_SOURCE_DIR}/threads.cc
+  )
+
+target_link_libraries(threads
+  ${CMAKE_THREAD_LIBS_INIT}
+  )
