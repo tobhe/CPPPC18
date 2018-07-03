@@ -14,6 +14,10 @@ add_executable( log
 
 find_package( Threads )
 
+add_executable( chunks
+  ${CMAKE_SOURCE_DIR}/chunks.cc
+  )
+
 add_executable(semantic_surprise
   ${CMAKE_SOURCE_DIR}/semantic_surprise.cc
   )
