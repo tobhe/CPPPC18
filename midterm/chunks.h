@@ -23,16 +23,7 @@ class chunks
 
     // Construct
     iterator() = delete;
-    iterator(size_t index, T * data) : _index(index), _data(data) {}
-
-    // Dereference
-    reference operator*() {
-      return *reinterpret_cast<value_type *>(_data + (B / sizeof(T)));
-    }
-
-    reference operator*() const {
-      return *reinterpret_cast<value_type *>(_data + (B / sizeof(T)));
-    }
+    iterator(T * data) : _data(data) {}
 
     auto operator[](difference_type i) { return _data[i]; }
 
@@ -40,7 +31,7 @@ class chunks
 
     // Increment
     iterator & operator++() {
-      _index += B;
+      _index++;
       return *this;
     }
 
@@ -53,6 +44,12 @@ class chunks
     iterator operator--() {
       _index--;
       return *this;
+    }
+
+    iterator operator--(int) {
+      auto tmp = *this;
+      _index--;
+      return tmp;
     }
 
     // Compare
@@ -75,7 +72,7 @@ class chunks
 
   private:
     T *    _data;
-    size_t _index;
+    size_t _index = 0;
   };
 
 public:
@@ -84,8 +81,8 @@ public:
   chunks(Container & c) : _container(c) {}
 
   // Iterators
-  iterator begin() { return iterator(0, _container.data()); }
-  iterator end() { return iterator(size(), _container.data()); }
+  iterator begin() { return iterator(_container.data()); }
+  iterator end() { return iterator(_container.data() + size()); }
 
   size_t size() { return _container.size(); }
 
