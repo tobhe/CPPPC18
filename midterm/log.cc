@@ -6,12 +6,14 @@
 #include <vector>
 
 namespace cpppc {
-void log10(int num) {
-  std::cout << "Int:" << std::log10(num) << '\n';
-}
 
-void log10(float num) {
-  std::cout << "Float: " << std::log10(sqrt(num)) << '\n';
+template <class T>
+void log10(T num) {
+  if constexpr (std::is_integral<T>::value)  {
+    std::cout << "Int:" << std::log10(num) << '\n';
+  } else {
+    std::cout << "Float:" << std::log10(sqrt(num)) << '\n';
+  }
 }
 
 template <class T>
