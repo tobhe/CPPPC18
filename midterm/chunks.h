@@ -52,6 +52,8 @@ class chunks
       return tmp;
     }
 
+    auto operator-(iterator & rhs) { return _index - rhs._index; }
+
     // Compare
     bool operator==(iterator & rhs) {
       return (this == &rhs || _index == rhs._index);
@@ -60,13 +62,9 @@ class chunks
     bool operator!=(iterator & rhs) { return !(*this == rhs); }
 
     // Iterators
-    auto begin() {
-      return reinterpret_cast<value_type *>(_data + (B / sizeof(T)))->begin();
-    }
+    auto begin() { return reinterpret_cast<value_type *>(_data)->begin(); }
 
-    auto end() {
-      return *reinterpret_cast<value_type *>(_data + (B / sizeof(T)))->end();
-    }
+    auto end() { return reinterpret_cast<value_type *>(_data)->end(); }
 
     auto data() { return _data; }
 
@@ -86,11 +84,9 @@ public:
 
   size_t size() { return _container.size(); }
 
-  auto operator[](size_t index) { return iterator(index, _container.data()); }
+  auto operator[](size_t index) { return iterator(_container.data()); }
 
-  auto operator[](size_t index) const {
-    return iterator(index, _container.data());
-  }
+  auto operator[](size_t index) const { return iterator(_container.data()); }
 
 private:
   Container & _container;
