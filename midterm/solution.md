@@ -183,3 +183,53 @@ It might be best if you use existing STL containers like `std::vector<T>` or `st
 **Note**
 
 The `cpppc::chunks` container adapter can (and should) be implemented as a view, that is: without copying elements of the underlying vector.
+
+# 4. Thread-Safety
+
+## 4.1 Parallelism and STL Containers
+
+Given the following operations on an instance of `std::vector`, consider operations in the same table row to be executed by multiple threads in parallel:
+
+```
+// Shared vector instance accessed by thread A and thread B:
+std::vector<int> v;
+
+// thread A:                    | thread B:
+// =============================|==============================
+   std::vector<int> a;          | std::vector<int> b;           
+//  
+// Two vectors are constructed
+// Different containers -> can be called concurrently
+// -----------------------------|------------------------------
+   int xa = v[3];               | int xb = v[4];
+//
+// Two elements of v are assigned to different variables:
+// Read only and different elements -> can be called concurrently
+// -----------------------------|------------------------------
+   v[3] = 123;                  | v[4] = 345;
+// two elements of the same vector are written to at the same time
+// Different elements in the same container can be modified concurrently by different threads
+// -----------------------------|------------------------------
+   v[3] = 123;                  | int xb = v[3];
+// The same element is read and written to by different threads
+// No guarantees -> don't do this
+// -----------------------------|------------------------------
+   v.push_back(24);             | v.size();
+// Concurrent read and write access
+// same as above
+// -----------------------------|------------------------------
+   v.back();                    | v.push_back(54);
+// Concurrent read of last element and insertion of last element
+// no guarantee which element is read with back()
+// -----------------------------|------------------------------
+   v.begin();                   | v.push_back(34);
+// Construct iterator to first element and push element to back
+// Container operations that invalidate any iterators modify the 
+// container and cannot be executed concurrently with any operations 
+// on existing iterators even if those iterators are not invalidated.
+// -----------------------------|------------------------------
+   v.back();                    | v.pop_back();
+// -----------------------------|------------------------------
+// Concurrent read of last element and deletion of last element
+// no guarantee which element is read with back()
+```
