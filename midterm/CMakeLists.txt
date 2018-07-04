@@ -8,6 +8,15 @@ set (CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options (-Wall -Wextra -Wpedantic -fPIC -Wfatal-errors)
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.2.0)
+    message (FATAL_ERROR "GNU g++ 7.2.0 or later required.")
+  endif ()
+else ()
+  message (FATAL_ERROR "Only GNU gcc (7.2.0+) compiles this (because gcov).")
+endif ()
+
+
 add_executable( log
   ${CMAKE_SOURCE_DIR}/log.cc
 )

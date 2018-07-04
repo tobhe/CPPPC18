@@ -5,92 +5,65 @@
 #include <cstddef>
 #include <iterator>
 #include <vector>
+#include "span.h"
 
 namespace cpppc {
 
 template <size_t B, class T, class Container>
 class chunks
 {
+public:
   class iterator
   {
   public:
-    using value_type        = std::array<T, B / sizeof(T)>;
-    using iterator_category = std::random_access_iterator_tag;
-    using reference         = value_type &;
-    using const_reference   = value_type const &;
-    using pointer           = value_type *;
-    using difference_type   = std::ptrdiff_t;
+    using iterator_tag    = std::random_access_iterator_tag;
+    using difference_type = std::ptrdiff_t;
 
-    // Construct
     iterator() = delete;
-    iterator(T * data) : _data(data) {}
+    iterator(T * data, difference_type offset) : _data(data), _offset(offset) {}
 
-    auto operator[](difference_type i) { return _data[i]; }
-
-    auto operator[](difference_type i) const { return _data[i]; }
-
-    // Increment
-    iterator & operator++() {
-      _index++;
+    auto & operator++() {
+      _offset += B / sizeof(T);
       return *this;
     }
 
-    iterator operator++(int) {
-      auto tmp = *this;
-      _index++;
-      return tmp;
-    }
-
-    iterator operator--() {
-      _index--;
+    auto & operator--() {
+      _offset -= B / sizeof(T);
       return *this;
     }
 
-    iterator operator--(int) {
-      auto tmp = *this;
-      _index--;
-      return tmp;
+    auto operator[](difference_type index) {
+      return nonstd::span<T>(_data + _offset, B)[index];
     }
 
-    auto operator-(iterator & rhs) { return _index - rhs._index; }
-
-    // Compare
-    bool operator==(iterator & rhs) {
-      return (this == &rhs || _index == rhs._index);
-    }
-
-    bool operator!=(iterator & rhs) { return !(*this == rhs); }
-
-    // Iterators
-    auto begin() { return reinterpret_cast<value_type *>(_data)->begin(); }
-
-    auto end() { return reinterpret_cast<value_type *>(_data)->end(); }
-
-    auto data() { return _data; }
+    auto operator*() { return nonstd::span<T>(_data + _offset, B); }
 
   private:
-    T *    _data;
-    size_t _index = 0;
+    T * _data;
+    difference_type _offset;
   };
 
-public:
+  using difference_type = std::ptrdiff_t;
+
   // Constructors
   chunks() = delete;
-  chunks(Container & c) : _container(c) {}
+  chunks(Container & c) : _data(c.data()), _size(c.size()) {}
 
   // Iterators
-  iterator begin() { return iterator(_container.data()); }
-  iterator end() { return iterator(_container.data() + size()); }
+  auto begin() { return iterator(_data, 0); }
+  auto end() { return iterator(_data, size()); }
 
-  size_t size() { return _container.size(); }
+  auto & first() { return *begin(); }
 
-  auto operator[](size_t index) { return iterator(_container.data()); }
+  size_t size() { return _size; }
 
-  auto operator[](size_t index) const { return iterator(_container.data()); }
+  auto operator[](difference_type index) {
+    return nonstd::span<T>(_data + (index * B), B);
+  }
 
 private:
-  Container & _container;
-  std::size_t _chunksize = B;
+  T *    _data;
+  size_t _size;
 };
 
 }  // namespace cpppc
