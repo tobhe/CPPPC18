@@ -16,30 +16,42 @@ public:
   class iterator
   {
   public:
-    using iterator_tag    = std::random_access_iterator_tag;
-    using difference_type = std::ptrdiff_t;
+    using iterator_category = std::random_access_iterator_tag;
+    using value_type        = T;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = value_type *;
+    using reference         = value_type &;
 
     iterator() = delete;
-    iterator(T * data, difference_type offset) : _data(data), _offset(offset) {}
+    iterator(T * data, difference_type offset)
+     : _data(data), _offset(offset / (B / sizeof(T))) {}
 
     auto & operator++() {
-      _offset += B / sizeof(T);
+      ++_offset;
       return *this;
     }
 
     auto & operator--() {
-      _offset -= B / sizeof(T);
+      --_offset;
       return *this;
     }
 
-    auto operator[](difference_type index) {
-      return nonstd::span<T>(_data + _offset, B)[index];
+    auto operator-(iterator & rhs) { return _offset - rhs._offset; }
+
+    reference operator[](difference_type index) {
+      return nonstd::span<T>(_data + (_offset * (B / sizeof(T))), B)[index];
     }
 
     auto operator*() { return nonstd::span<T>(_data + _offset, B); }
 
+    bool operator==(iterator & rhs) const {
+      return (this == &rhs || _offset == rhs._offset);
+    }
+
+    bool operator!=(iterator & rhs) const { return !(*this == rhs); }
+
   private:
-    T * _data;
+    T *             _data;
     difference_type _offset;
   };
 
@@ -47,23 +59,21 @@ public:
 
   // Constructors
   chunks() = delete;
-  chunks(Container & c) : _data(c.data()), _size(c.size()) {}
+  chunks(Container & c) : _c(c) {}
 
   // Iterators
-  auto begin() { return iterator(_data, 0); }
-  auto end() { return iterator(_data, size()); }
+  auto begin() { return iterator(_c.data(), 0); }
+  auto end() { return iterator(_c.data(), size()); }
 
-  auto & first() { return *begin(); }
-
-  size_t size() { return _size; }
+  size_t size() const { return _c.size(); }
 
   auto operator[](difference_type index) {
-    return nonstd::span<T>(_data + (index * B), B);
+    return nonstd::span<T>(_c.data() + (index * B), B);
   }
 
 private:
-  T *    _data;
-  size_t _size;
+  Container & _c;
+  size_t      _size;
 };
 
 }  // namespace cpppc
